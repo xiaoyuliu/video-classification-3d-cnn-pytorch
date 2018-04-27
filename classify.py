@@ -4,8 +4,10 @@ from torch.autograd import Variable
 from dataset import Video
 from spatial_transforms import (Compose, Normalize, Scale, CenterCrop, ToTensor)
 from temporal_transforms import LoopPadding
+import time
 
-def classify_video(video_dir, video_name, class_names, model, opt):
+
+def classify_video(video_dir, video_name, class_names, model, opt, classify_time):
     assert opt.mode in ['score', 'feature']
 
     spatial_transform = Compose([Scale(opt.sample_size),
@@ -23,7 +25,10 @@ def classify_video(video_dir, video_name, class_names, model, opt):
     video_segments = []
     for i, (inputs, segments) in enumerate(data_loader):
         inputs = Variable(inputs, volatile=True)
+        start_time = time.time()
         outputs = model(inputs)
+        classify_time[0] += time.time() - start_time
+        print(classify_time)
 
         video_outputs.append(outputs.cpu().data)
         video_segments.append(segments)

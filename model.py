@@ -1,7 +1,8 @@
 import torch
 from torch import nn
-
-from models import resnet, pre_act_resnet, wide_resnet, resnext, densenet
+import sys
+sys.path.insert(0, './models')
+import resnet, pre_act_resnet, wide_resnet, resnext, densenet
 
 
 def generate_model(opt):

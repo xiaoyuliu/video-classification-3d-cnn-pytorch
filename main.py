@@ -4,6 +4,7 @@ import json
 import subprocess
 import numpy as np
 import torch
+import time
 from torch import nn
 
 from opts import parse_opts
@@ -12,16 +13,18 @@ from mean import get_mean
 from classify import classify_video
 
 if __name__=="__main__":
+    classify_time = [0]
     opt = parse_opts()
     opt.mean = get_mean()
     opt.arch = '{}-{}'.format(opt.model_name, opt.model_depth)
     opt.sample_size = 112
     opt.sample_duration = 16
-    opt.n_classes = 400
+    opt.n_classes = 51
 
     model = generate_model(opt)
     print('loading model {}'.format(opt.model))
     model_data = torch.load(opt.model)
+    print(model_data['arch'])
     assert opt.arch == model_data['arch']
     model.load_state_dict(model_data['state_dict'])
     model.eval()
@@ -31,10 +34,10 @@ if __name__=="__main__":
     input_files = []
     with open(opt.input, 'r') as f:
         for row in f:
-            input_files.append(row[:-1])
+            input_files.append(row.strip())
 
     class_names = []
-    with open('class_names_list') as f:
+    with open('class_names_list_hmdb51') as f:
         for row in f:
             class_names.append(row[:-1])
 
@@ -51,10 +54,11 @@ if __name__=="__main__":
         if os.path.exists(video_path):
             print(video_path)
             subprocess.call('mkdir tmp', shell=True)
-            subprocess.call('ffmpeg -i {} tmp/image_%05d.jpg'.format(video_path),
-                            shell=True)
+            # subprocess.call('ffmpeg -i {} tmp/image_%05d.jpg'.format(video_path),
+            #                 shell=True)
+            # subprocess.call('cp {}/* tmp/'.format(video_path))
 
-            result = classify_video('tmp', input_file, class_names, model, opt)
+            result = classify_video(video_path, input_file, class_names, model, opt, classify_time)
             outputs.append(result)
 
             subprocess.call('rm -rf tmp', shell=True)
